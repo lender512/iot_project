@@ -1,3 +1,6 @@
+#ifndef PREPROCESS_H
+#define PREPROCESS_H
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
@@ -10,14 +13,14 @@
 // (4) Tune time elapsed for push data (for data collection)
 
 
-#define MAX_RAW_DATA_STORAGE 128
+#define MAX_RAW_DATA_STORAGE 256
 #define RAW_SAMPLE_SIZE 8
 #define MAX_SIMPLE_DATA_STORAGE (MAX_RAW_DATA_STORAGE / RAW_SAMPLE_SIZE)
-#define TIME_ELAPSED_FOR_PUSH_DATA 10
-#define MAX_HEART_DATA_VALUE 200
-#define MIN_HEART_DATA_VALUE 60
-#define MAX_ENDO_DATA_VALUE 120
-#define MIN_ENDO_DATA_VALUE 30
+#define TIME_ELAPSED_FOR_PUSH_DATA 5000
+#define MAX_HEART_DATA_VALUE 300
+#define MIN_HEART_DATA_VALUE 30
+#define MAX_ENDO_DATA_VALUE 1023
+#define MIN_ENDO_DATA_VALUE 0
 
 
 #define NORMALIZE_MINMAX(x, min, max) ((x - min) / (max - min))
@@ -38,13 +41,13 @@ struct data_chunk{
 float raw_heart_data_storage[MAX_RAW_DATA_STORAGE];
 float raw_endo_data_storage[MAX_RAW_DATA_STORAGE];
 float raw_time_storage[MAX_RAW_DATA_STORAGE];
-int raw_storage_size = 0;
+uint32_t raw_storage_size = 0;
 
 
 float simple_heart_data_storage[MAX_SIMPLE_DATA_STORAGE];
 float simple_endo_data_storage[MAX_SIMPLE_DATA_STORAGE];
 float simple_time_storage[MAX_SIMPLE_DATA_STORAGE];
-int simple_storage_size = 0;
+uint32_t simple_storage_size = 0;
 
 
 float heart_data_average = 0;
@@ -59,10 +62,12 @@ void add_data(uint64_t run_id,float raw_heart_data, float raw_endo_data, float r
 void push_data(uint64_t run_id);
 void simplify_raw_data();
 void normalize_simple_data();
-void feature_extraction();
+void extract_features();
 void send_data_to_server(uint64_t run_id);
 float compute_data_average(float *data, uint32_t size);
 float compute_data_standard_deviation(float average, float *data, uint32_t size);
+void send_bytes_to_server(uint8_t *bytes, int size);
+void print_for_debugging();
 
 
 void add_data(uint64_t run_id, float raw_heart_data, float raw_endo_data, float raw_time){
@@ -84,6 +89,7 @@ void push_data(uint64_t run_id){
     simplify_raw_data();
     normalize_simple_data();
     extract_features();
+    print_for_debugging();
     send_data_to_server(run_id);
 }
 
@@ -117,7 +123,7 @@ void normalize_simple_data(){
 }
 
 
-void feature_extraction(){
+void extract_features(){
     heart_data_average = compute_data_average(simple_heart_data_storage, simple_storage_size);
     heart_data_standard_deviation = compute_data_standard_deviation(heart_data_average, simple_heart_data_storage, simple_storage_size);
     
@@ -164,3 +170,35 @@ void send_bytes_to_server(uint8_t *bytes, int size){
     // TODO: LUIS (ARDUINO STUFF)
 
 }
+
+
+void print_for_debugging(){
+    Serial.println("RAW DATA");
+    for(int i = 0; i < raw_storage_size; i++){
+        Serial.print(raw_heart_data_storage[i]);
+        Serial.print(" ");
+        Serial.print(raw_endo_data_storage[i]);
+        Serial.print(" ");
+        Serial.println(raw_time_storage[i]);
+    }
+
+    Serial.println("SIMPLE DATA");
+    for(int i = 0; i < simple_storage_size; i++){
+        Serial.print(simple_heart_data_storage[i]);
+        Serial.print(" ");
+        Serial.print(simple_endo_data_storage[i]);
+        Serial.print(" ");
+        Serial.println(simple_time_storage[i]);
+    }
+
+    Serial.println("FEATURES");
+    Serial.print(heart_data_average);
+    Serial.print(" ");
+    Serial.print(heart_data_standard_deviation);
+    Serial.print(" ");
+    Serial.print(endo_data_average);
+    Serial.print(" ");
+    Serial.println(endo_data_standard_deviation);
+}
+
+#endif
