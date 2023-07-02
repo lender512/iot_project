@@ -8,13 +8,6 @@
 #include <stdio.h>
 
 
-// TODO:
-// (1) Implement send_bytes_to_server (arduino stuff)
-// (2) Tune the MIN/MAX values of heart and endo data (for normalization)
-// (3) Tune window size (for noise reduction)
-// (4) Tune time elapsed for push data (for data collection)
-
-
 #define MAX_RAW_DATA_STORAGE 64
 #define RAW_SAMPLE_SIZE 8
 #define MAX_SIMPLE_DATA_STORAGE (MAX_RAW_DATA_STORAGE / RAW_SAMPLE_SIZE)
