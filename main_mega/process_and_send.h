@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
+#include <stdio.h>
 
 
 // TODO:
@@ -24,18 +26,6 @@
 
 
 #define NORMALIZE_MINMAX(x, min, max) ((x - min) / (max - min))
-
-struct data_chunk{
-    uint64_t run_id;
-    uint32_t size;
-    float heart_data[MAX_SIMPLE_DATA_STORAGE];
-    float endo_data[MAX_SIMPLE_DATA_STORAGE];
-    float time[MAX_SIMPLE_DATA_STORAGE];
-    float heart_data_average;
-    float heart_data_standard_deviation;
-    float endo_data_average;
-    float endo_data_standard_deviation;
-};
 
 
 float raw_heart_data_storage[MAX_RAW_DATA_STORAGE];
@@ -67,7 +57,6 @@ void send_data_to_server(uint64_t run_id);
 float compute_data_average(float *data, uint32_t size);
 float compute_data_standard_deviation(float average, float *data, uint32_t size);
 void send_bytes_to_server(uint8_t *bytes, int size);
-void print_for_debugging();
 
 
 void add_data(uint64_t run_id, float raw_heart_data, float raw_endo_data, float raw_time){
@@ -81,6 +70,7 @@ void add_data(uint64_t run_id, float raw_heart_data, float raw_endo_data, float 
     if(raw_time_elapsed >= TIME_ELAPSED_FOR_PUSH_DATA){
         push_data(run_id);
         raw_storage_size = 0;
+        simple_storage_size = 0;
     }
 }
 
@@ -89,7 +79,6 @@ void push_data(uint64_t run_id){
     simplify_raw_data();
     normalize_simple_data();
     extract_features();
-    print_for_debugging();
     send_data_to_server(run_id);
 }
 
@@ -148,57 +137,34 @@ float compute_data_standard_deviation(float average, float *data, uint32_t size)
     return sqrt(sum / size);
 }
 
+
 void send_data_to_server(uint64_t run_id){
-    struct data_chunk chunk;
+    char buffer[512];
 
-    chunk.run_id = run_id;
-    chunk.size = simple_storage_size;
-    memcpy(chunk.heart_data, simple_heart_data_storage, simple_storage_size * sizeof(float));
-    memcpy(chunk.endo_data, simple_endo_data_storage, simple_storage_size * sizeof(float));
-    memcpy(chunk.time, simple_time_storage, simple_storage_size * sizeof(float));
+    memset(buffer, 0, sizeof(buffer));
 
-    chunk.heart_data_average = heart_data_average;
-    chunk.heart_data_standard_deviation = heart_data_standard_deviation;
-    chunk.endo_data_average = endo_data_average;
-    chunk.endo_data_standard_deviation = endo_data_standard_deviation;
+    strcat(buffer, "{\"heart_avg\":");
+    dtostrf(heart_data_average, 5, 3, buffer + strlen(buffer));
+    strcat(buffer, ",\"heart_sd\":");
+    dtostrf(heart_data_standard_deviation, 5, 3, buffer + strlen(buffer));
+    strcat(buffer, ",\"endo_avg\":");
+    dtostrf(endo_data_average, 5, 3, buffer + strlen(buffer));
+    strcat(buffer, ",\"endo_sd\":");
+    dtostrf(endo_data_standard_deviation, 5, 3, buffer + strlen(buffer));
+    strcat(buffer, ",\"time\":");
+    dtostrf(raw_time_storage[raw_storage_size-1], 5, 1, buffer + strlen(buffer));
+    strcat(buffer, "}");
 
-    send_bytes_to_server((uint8_t *) &chunk, sizeof(struct data_chunk));
+    // Print the JSON string
+    Serial.println(buffer);
+
+    send_bytes_to_server((uint8_t *) &buffer, strlen(buffer)*sizeof(char));
 }
 
 void send_bytes_to_server(uint8_t *bytes, int size){
     // Send bytes to server
     // TODO: LUIS (ARDUINO STUFF)
 
-}
-
-
-void print_for_debugging(){
-    Serial.println("RAW DATA");
-    for(int i = 0; i < raw_storage_size; i++){
-        Serial.print(raw_heart_data_storage[i]);
-        Serial.print(" ");
-        Serial.print(raw_endo_data_storage[i]);
-        Serial.print(" ");
-        Serial.println(raw_time_storage[i]);
-    }
-
-    Serial.println("SIMPLE DATA");
-    for(int i = 0; i < simple_storage_size; i++){
-        Serial.print(simple_heart_data_storage[i]);
-        Serial.print(" ");
-        Serial.print(simple_endo_data_storage[i]);
-        Serial.print(" ");
-        Serial.println(simple_time_storage[i]);
-    }
-
-    Serial.println("FEATURES");
-    Serial.print(heart_data_average);
-    Serial.print(" ");
-    Serial.print(heart_data_standard_deviation);
-    Serial.print(" ");
-    Serial.print(endo_data_average);
-    Serial.print(" ");
-    Serial.println(endo_data_standard_deviation);
 }
 
 #endif
