@@ -58,4 +58,27 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
   Serial.print("Message content: ");
-  for (int i = 0; i
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+
+  // Add your logic here to handle the incoming message
+}
+
+void reconnect() {
+  // Loop until reconnected
+  while (!mqttClient.connected()) {
+    Serial.println("Reconnecting to MQTT broker...");
+    if (mqttClient.connect("ESP32Client")) {
+      Serial.println("Connected to MQTT broker");
+      // Subscribe to the MQTT topic
+      mqttClient.subscribe(mqttTopic);
+    } else {
+      Serial.print("Failed, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" Retrying in 5 seconds...");
+      delay(5000);
+    }
+  }
+}
