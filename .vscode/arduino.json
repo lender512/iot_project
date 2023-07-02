@@ -1,7 +1,7 @@
 {
-    "configuration": "cpu=atmega2560",
-    "board": "arduino:avr:mega",
-    "programmer": "avrisp",
-    "port": "COM3",
-    "sketch": "main_mega\\main_mega.ino"
+    "configuration": "FlashFreq=80,UploadSpeed=921600,DebugLevel=none,EraseFlash=none",
+    "board": "esp32:esp32:nodemcu-32s",
+    "programmer": "esptool",
+    "port": "COM4",
+    "sketch": "main_esp\\main_esp.ino"
 }

@@ -44,36 +44,28 @@ bool need_to_send = false;
 
 void loop() {
   
+  client.loop();
+  if (Serial.available() > 0) {
+//    while(!timeClient.update()) { // Actualizar el cliente NTP y esperar la actualizacion
+//      timeClient.forceUpdate(); // Forzar una actualizacion si no se puede obtener la hora
+//    }
+    formattedDate = timeClient.getFormattedTime(); //
+    // Read the incoming data from Arduino Mega
+    char bfr[501];
+    memset(bfr,0, 501);
+    Serial.readBytesUntil( '\n',bfr,500);
 
-// Obtener la fecha y hora actual en formato de cadena
- 
- if (!client.connected()) { // Verificar si el cliente MQTT esta conectado
-  reconnect(); // Reconectar si no esta conectado
- }
- client.loop(); // Mantener la conexion MQTT activa
- while(true) {
-  while (!Serial.available()) {
-    }
-    while(!timeClient.update()) { // Actualizar el cliente NTP y esperar la actualizacion
-  timeClient.forceUpdate(); // Forzar una actualizacion si no se puede obtener la hora
- }
- formattedDate = timeClient.getFormattedTime(); //
-  // Read the incoming data from Arduino Mega
-  String dataString = Serial.readStringUntil('\n');
+    // Process the data or perform any necessary actions
+    // For example, you can send the data to the internet using WiFi or other protocols
 
-  // Process the data or perform any necessary actions
-  // For example, you can send the data to the internet using WiFi or other protocols
-
-  Serial.print("Received data: ");
-  Serial.println(dataString);
-  publishMessage(dataString.c_str()); // Enviar un mensaje al servidor MQTT con el texto "Objeto detectado"
-    
- }
+    Serial.print("Received data: ");
+    Serial.println(bfr);
+    publishMessage(bfr); // Enviar un mensaje al servidor MQTT con el texto "Objeto detectado"
+  } 
+}
   
 
   //delay(100);
-
-}
 
 void reconnect() {
  while (!client.connected()) { // Mientras el cliente MQTT no este conectado
@@ -93,6 +85,9 @@ void reconnect() {
 void publishMessage(const char* message) {
  int splitT = formattedDate.indexOf("T"); // Encontrar la posicion del caracter 'T' en la fecha y hora
  timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1); // Extraer la hora de la cadena de fecha y hora
+if (!client.connected()) {
+  reconnect();
+}
  client.publish(mqtt_topic,timeStamp.c_str()); // Publicar la hora en el tema MQTT
  if (client.publish(mqtt_topic, message)) { // Enviar el mensaje al servidor MQTT
   Serial.println("Message sent");
