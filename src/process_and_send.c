@@ -23,7 +23,8 @@
 #define NORMALIZE_MINMAX(x, min, max) ((x - min) / (max - min))
 
 struct data_chunk{
-    int size;
+    uint64_t run_id;
+    uint32_t size;
     float heart_data[MAX_SIMPLE_DATA_STORAGE];
     float endo_data[MAX_SIMPLE_DATA_STORAGE];
     float time[MAX_SIMPLE_DATA_STORAGE];
@@ -52,19 +53,19 @@ float endo_data_average = 0;
 float endo_data_standard_deviation = 0;
 
 
-void add_data(float raw_heart_data, float raw_endo_data, float raw_time);
+void add_data(uint64_t run_id,float raw_heart_data, float raw_endo_data, float raw_time);
 
 
-void push_data();
+void push_data(uint64_t run_id);
 void simplify_raw_data();
 void normalize_simple_data();
 void feature_extraction();
-void send_data_to_server();
-float compute_data_average(float *data, int size);
-float compute_data_standard_deviation(float average, float *data, int size);
+void send_data_to_server(uint64_t run_id);
+float compute_data_average(float *data, uint32_t size);
+float compute_data_standard_deviation(float average, float *data, uint32_t size);
 
 
-void add_data(float raw_heart_data, float raw_endo_data, float raw_time){
+void add_data(uint64_t run_id, float raw_heart_data, float raw_endo_data, float raw_time){
     raw_heart_data_storage[raw_storage_size] = raw_heart_data;
     raw_endo_data_storage[raw_storage_size] = raw_endo_data;
     raw_time_storage[raw_storage_size] = raw_time;
@@ -73,17 +74,17 @@ void add_data(float raw_heart_data, float raw_endo_data, float raw_time){
     raw_storage_size++;
 
     if(raw_time_elapsed >= TIME_ELAPSED_FOR_PUSH_DATA){
-        push_data();
+        push_data(run_id);
         raw_storage_size = 0;
     }
 }
 
 
-void push_data(){
+void push_data(uint64_t run_id){
     simplify_raw_data();
     normalize_simple_data();
     extract_features();
-    send_data_to_server();
+    send_data_to_server(run_id);
 }
 
 void simplify_raw_data(){
@@ -124,7 +125,7 @@ void feature_extraction(){
     endo_data_standard_deviation = compute_data_standard_deviation(endo_data_average, simple_endo_data_storage, simple_storage_size);
 }
 
-float compute_data_average(float *data, int size){
+float compute_data_average(float *data, uint32_t size){
     float sum = 0;
     for(int i = 0; i < size; i++){
         sum += data[i];
@@ -132,7 +133,7 @@ float compute_data_average(float *data, int size){
     return sum / size;
 }
 
-float compute_data_standard_deviation(float average, float *data, int size){
+float compute_data_standard_deviation(float average, float *data, uint32_t size){
     float sum = 0;
     for(int i = 0; i < size; i++){
         const float difference = average - data[i];
@@ -141,9 +142,10 @@ float compute_data_standard_deviation(float average, float *data, int size){
     return sqrt(sum / size);
 }
 
-void send_data_to_server(){
+void send_data_to_server(uint64_t run_id){
     struct data_chunk chunk;
 
+    chunk.run_id = run_id;
     chunk.size = simple_storage_size;
     memcpy(chunk.heart_data, simple_heart_data_storage, simple_storage_size * sizeof(float));
     memcpy(chunk.endo_data, simple_endo_data_storage, simple_storage_size * sizeof(float));
