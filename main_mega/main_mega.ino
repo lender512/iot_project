@@ -46,21 +46,10 @@ void loop()
   
   if (pulseSensor.sawStartOfBeat())
   { 
-    //Actividad endotérmica
-    //Serial.print("Endo: ");                        // Print phrase "BPM: "
     int const endoValu = analogRead(endoderPin);
-    //Serial.println(endoValu);  // Calls function on our pulseSensor object that returns BPM as an "int".
-                           
-    //Actividad cardiaca
     int const myBPM = pulseSensor.getBeatsPerMinute();
-    // Serial.println("♥  A HeartBeat Happened ! "); // If test is "true", print a message "a heartbeat happened".
-    //Serial.print("BPM: ");                        // Print phrase "BPM: "
-    //Serial.println(myBPM);                       // Print the value inside of myBPM.
-
     unsigned long const relative_time = millis();
-
     add_data(0, (float)myBPM, (float)endoValu, (float) relative_time);
   }
-
   delay(100); // considered best practice in a simple sketch.
 }
