@@ -17,7 +17,7 @@
 const int PulseWire = A0;    // PulseSensor PURPLE WIRE connected to ANALOG PIN 0
 const int endoderPin = A1;    // the number of the encoder pin
 const int LED = LED_BUILTIN; // The on-board Arduino LED, close to PIN 13.
-int Threshold = 400;         // Determine which Signal to "count as a beat" and which to ignore.
+int Threshold = 300;         // Determine which Signal to "count as a beat" and which to ignore.
                              // Use the "Gettting Started Project" to fine-tune Threshold Value beyond default setting.
                              // Otherwise leave the default "550" value.
 
@@ -48,6 +48,7 @@ void loop()
   { 
     int const endoValu = analogRead(endoderPin);
     int const myBPM = pulseSensor.getBeatsPerMinute();
+//    Serial.println(myBPM);
     unsigned long const relative_time = millis();
     add_data(0, (float)myBPM, (float)endoValu, (float) relative_time);
   }

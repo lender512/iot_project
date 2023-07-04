@@ -2,8 +2,8 @@
 #include <PubSubClient.h>
 #include <NTPClient.h>
 
-const char *ssid = "MiTelefono";    // Nombre de la red WiFi
-const char *password = "cuyaregay"; // Contraseña de la red WiFi
+const char *ssid = "ssid";    // Nombre de la red WiFi
+const char *password = "Contrasena"; // Contraseña de la red WiFi
 // const char* ssid = "Luis"; // Nombre de la red WiFi
 // const char* password = "28121204"; // Contraseña de la red WiFi
 

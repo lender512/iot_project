@@ -8,10 +8,10 @@
 #include <stdio.h>
 
 
-#define MAX_RAW_DATA_STORAGE 64
+#define MAX_RAW_DATA_STORAGE 512
 #define RAW_SAMPLE_SIZE 8
 #define MAX_SIMPLE_DATA_STORAGE (MAX_RAW_DATA_STORAGE / RAW_SAMPLE_SIZE)
-#define TIME_ELAPSED_FOR_PUSH_DATA 4000
+#define TIME_ELAPSED_FOR_PUSH_DATA 32000
 #define MAX_HEART_DATA_VALUE 300
 #define MIN_HEART_DATA_VALUE 30
 #define MAX_ENDO_DATA_VALUE 1023
@@ -70,7 +70,7 @@ void add_data(uint64_t run_id, float raw_heart_data, float raw_endo_data, float 
 
 void push_data(uint64_t run_id){
     simplify_raw_data();
-    normalize_simple_data();
+    //normalize_simple_data();
     extract_features();
     send_data_to_server(run_id);
 }
